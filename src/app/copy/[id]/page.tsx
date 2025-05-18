@@ -89,7 +89,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
         yearCreated={data.year_created}
         awards={data.awards}
         tags={tags}
-        source={data.source} // Assuming data.source is {title, url}[] from DB
+        source={data.source as { title: string; url: string }[] | null | undefined}
         headline={data.headline}
         // Use serial_number for volNumber display
         volNumber={data.serial_number || data.id} // Fallback to id if serial_number is null

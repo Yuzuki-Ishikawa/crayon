@@ -83,14 +83,14 @@ export default function CopyEntriesAdminPage() {
     try {
       // --- 1. Remove images marked for deletion --- 
       if (imagesToDelete.length > 0 && editingEntry) {
-          console.log('Removing existing images marked for deletion:', imagesToDelete);
+          // console.log('Removing existing images marked for deletion:', imagesToDelete);
           // Storage expects file names/paths within the bucket
           const fileNamesToDelete = imagesToDelete.map(path => path.replace(`${IMAGE_BUCKET_NAME}/`, ''));
           const { error: removeError } = await supabase.storage
               .from(IMAGE_BUCKET_NAME)
               .remove(fileNamesToDelete);
           if (removeError) {
-              console.error('Failed to remove selected existing images:', removeError);
+              // console.error('Failed to remove selected existing images:', removeError);
           }
       }
 
@@ -106,7 +106,7 @@ export default function CopyEntriesAdminPage() {
             .upload(uniqueFileName, file); // Upload with unique name
 
           if (uploadError) {
-             console.error('Upload error:', uploadError);
+             // console.error('Upload error:', uploadError);
              throw new Error(`画像アップロード失敗: ${uploadError.message}`);
           }
           // Return the path stored in the DB (bucket name + file name)
@@ -131,22 +131,22 @@ export default function CopyEntriesAdminPage() {
       // --- 4. Save to DB (Insert or Update) ---
       if (editingEntry) {
         // Update
-        console.log('Updating entry:', editingEntry.id, dataToSave);
+        // console.log('Updating entry:', editingEntry.id, dataToSave);
          const { error: updateError } = await supabase
            .from('copy_entries')
            .update(dataToSave)
            .eq('id', editingEntry.id);
         if (updateError) throw updateError;
-        console.log('Update successful');
+        // console.log('Update successful');
 
       } else {
         // Insert
-         console.log('Inserting new entry:', dataToSave);
+         // console.log('Inserting new entry:', dataToSave);
          const { error: insertError } = await supabase
             .from('copy_entries')
             .insert(dataToSave);
           if (insertError) throw insertError;
-         console.log('Insert successful');
+         // console.log('Insert successful');
       }
       
       // --- 5. Success: Close form, refetch data ---
@@ -155,16 +155,16 @@ export default function CopyEntriesAdminPage() {
       await fetchEntries(); // Refresh the list
 
     } catch (err: any) {
-        console.error('Submit error:', err);
+        // console.error('Submit error:', err);
         setFormError(`保存に失敗しました: ${err.message}`);
         // Optional: Attempt to remove successfully uploaded images if DB save fails
         if (uploadedImagePaths.length > 0) {
-            console.log('Attempting to remove newly uploaded images due to DB error:', uploadedImagePaths);
+            // console.log('Attempting to remove newly uploaded images due to DB error:', uploadedImagePaths);
              // Storage expects file names/paths within the bucket
             const fileNamesToRemove = uploadedImagePaths.map(path => path.replace(`${IMAGE_BUCKET_NAME}/`, ''));
             const { error: removeError } = await supabase.storage.from(IMAGE_BUCKET_NAME).remove(fileNamesToRemove);
              if (removeError) {
-                console.error('Failed to remove uploaded images after error:', removeError);
+                // console.error('Failed to remove uploaded images after error:', removeError);
                 setFormError((prev) => prev + ' \n新規画像クリーンアップ失敗');
             }
         }
@@ -190,21 +190,21 @@ export default function CopyEntriesAdminPage() {
         // 2. Delete images from Storage
         const imagePathsToRemove = entry.key_visual_urls?.filter(Boolean) ?? [];
         if (imagePathsToRemove.length > 0) {
-           console.log('Removing images from storage:', imagePathsToRemove);
+           // console.log('Removing images from storage:', imagePathsToRemove);
            // Important: storage.remove expects only the file names/paths within the bucket
            const fileNamesToRemove = imagePathsToRemove.map(path => path.replace(`${IMAGE_BUCKET_NAME}/`, ''));
            const { error: storageError } = await supabase.storage
              .from(IMAGE_BUCKET_NAME)
              .remove(fileNamesToRemove);
            if (storageError) {
-             console.error('Storage remove error (continuing anyway):', storageError);
+             // console.error('Storage remove error (continuing anyway):', storageError);
              // Decide if this should be a critical error or just logged
            }
         }
         
         await fetchEntries(); // Refresh list
       } catch (err: any) {
-          console.error('Delete error:', err);
+          // console.error('Delete error:', err);
           setError(`削除に失敗しました: ${err.message}`);
       } finally {
           setLoading(false);
