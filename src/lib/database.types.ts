@@ -13,26 +13,32 @@ export interface Database {
         Row: {
           id: string
           created_at: string
+          updated_at: string
           title: string
           content: string
           source: Json
           serial_number: number
+          key_visual_urls: string[]
         }
         Insert: {
           id?: string
           created_at?: string
+          updated_at?: string
           title: string
           content: string
           source: Json
           serial_number?: number
+          key_visual_urls?: string[]
         }
         Update: {
           id?: string
           created_at?: string
+          updated_at?: string
           title?: string
           content?: string
           source?: Json
           serial_number?: number
+          key_visual_urls?: string[]
         }
       }
     }
