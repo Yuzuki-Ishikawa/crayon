@@ -265,7 +265,9 @@ export default function CopyEntriesAdminPage() {
                     <td className="py-2 px-3 whitespace-nowrap text-sm text-gray-500">{entry.id.substring(0, 8)}...</td>
                     <td className="py-2 px-3 text-sm text-gray-900">{entry.headline || 'N/A'}</td>
                     <td className="py-2 px-3 whitespace-nowrap text-sm text-gray-500">
-                      {new Date(entry.created_at).toLocaleString()}
+                      {entry.created_at
+                        ? new Date(entry.created_at).toLocaleString()
+                        : 'N/A'}
                     </td>
                     <td className="py-2 px-3 whitespace-nowrap text-sm text-gray-500">{entry.serial_number ?? '-'}</td>
                     <td className="py-2 px-3 whitespace-nowrap text-sm font-medium">
