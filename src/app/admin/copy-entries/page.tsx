@@ -122,7 +122,7 @@ export default function CopyEntriesAdminPage() {
       );
       let finalImagePaths = [...existingPathsToKeep, ...uploadedImagePaths];
 
-      const dataToSave: Omit<CopyEntry, 'id' | 'created_at' | 'updated_at' | 'serial_number'> & { id?: string } = {
+      const dataToSave: Omit<CopyEntry, 'id' | 'created_at' | 'serial_number'> & { id?: string } = {
           ...formData,
           key_visual_urls: finalImagePaths, // Use the updated list
           updated_at: new Date().toISOString(), 
