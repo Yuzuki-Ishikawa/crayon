@@ -1,0 +1,41 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: auth-v1
+    url: http://auth:9999/verify
+    routes:
+      - name: auth-v1-route
+        paths:
+          - /auth/v1/verify
+    plugins:
+      - name: cors
+      - name: key-auth
+      - name: acl
+        config:
+          whitelist:
+            - anon
+            - authenticated
+
+  - name: rest-v1
+    url: http://db:3000
+    routes:
+      - name: rest-v1-route
+        paths:
+          - /rest/v1
+    plugins:
+      - name: cors
+      - name: key-auth
+      - name: acl
+        config:
+          whitelist:
+            - anon
+            - authenticated
+
+consumers:
+  - username: anon
+    keyauth_credentials:
+      - key: your-anon-key
+  - username: service_role
+    keyauth_credentials:
+      - key: your-service-key 
