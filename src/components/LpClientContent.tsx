@@ -147,7 +147,12 @@ export default function LpClientContent({ featuredArticle, latestArticles }: LpC
           order: { xs: 3 },
           width: '100%' // Ensure the Box takes full available width within the padded Container
         }}>
-          <Button variant="contained" sx={{ bgcolor: '#06C755', color: '#fff', fontSize: { xs: 13, md: 14 }, fontWeight: 'bold', py: 1.2, px: 3, borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', '&:hover': { bgcolor: '#05a544' }, width: 'auto', whiteSpace: 'nowrap' }}>
+          <Button 
+            variant="contained" 
+            href="https://line.me/R/ti/p/@931hsabv"
+            target="_blank" // Open in new tab
+            rel="noopener noreferrer" // Security best practice for target="_blank"
+            sx={{ bgcolor: '#06C755', color: '#fff', fontSize: { xs: 13, md: 14 }, fontWeight: 'bold', py: 1.2, px: 3, borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', '&:hover': { bgcolor: '#05a544' }, width: 'auto', whiteSpace: 'nowrap' }}>
             LINE連携で最新情報を受け取る
           </Button>
         </Box>

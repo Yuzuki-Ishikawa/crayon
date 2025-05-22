@@ -7,6 +7,10 @@ const theme = createTheme({
     primary: {
       main: '#d32f2f', // Changed back to the original red color
     },
+    background: {
+      default: '#f5f8fa',
+      paper: '#f5f8fa',
+    },
     // You can define other colors like secondary, error, warning, info, success here
     // For example:
     // secondary: {
