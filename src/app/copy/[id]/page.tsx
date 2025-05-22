@@ -100,7 +100,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
 
   return (
     // Restore original container structure
-    <div className="max-w-3xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto py-8 px-6 sm:px-8 lg:px-10">
       {/* YouTube埋め込み */}
       {data.youtube_url && (
         <div className="mb-8 aspect-video w-full max-w-xl mx-auto">
@@ -137,7 +137,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
           <a 
             href={`/copy/${prevEntry.id}`} 
             className="text-sm font-medium flex items-center gap-1 py-2 px-3"
-            style={{ color: '#2253A3', textDecoration: 'none' }}
+            style={{ color: 'black', textDecoration: 'none' }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" /></svg>
             前の記事へ
@@ -149,7 +149,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
           <a 
             href={`/copy/${nextEntry.id}`} 
             className="text-sm font-medium flex items-center gap-1 py-2 px-3"
-            style={{ color: '#2253A3', textDecoration: 'none' }}
+            style={{ color: 'black', textDecoration: 'none' }}
           >
             次の記事へ
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4"><path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" /></svg>

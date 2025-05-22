@@ -70,7 +70,7 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
   const activeFilterCount = (appliedIndustry ? 1 : 0) + (appliedCategory ? 1 : 0);
 
   return (
-    <div className="max-w-5xl mx-auto py-3 px-2 sm:px-4">
+    <div className="max-w-4xl mx-auto py-3 px-2 sm:px-4">
       <div className="mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 px-2">
         {/* Breadcrumbs */}
         <nav aria-label="breadcrumb">

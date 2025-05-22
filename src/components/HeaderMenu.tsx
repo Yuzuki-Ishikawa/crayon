@@ -26,12 +26,9 @@ export default function HeaderMenu() {
     setDrawerOpen(open);
   };
 
-  const todayArticlePath = "/copy"; // TODO: 最新記事へのパスを決定
-
   const menuItems = [
     { text: 'トップページ', href: '/' },
     { text: '記事一覧', href: '/copy' },
-    { text: '今日の記事', href: todayArticlePath },
   ];
 
   const list = () => (

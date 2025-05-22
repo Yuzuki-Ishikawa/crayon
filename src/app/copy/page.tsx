@@ -106,7 +106,7 @@ export default async function BackNumberPage() {
   const allCategoryTags = Array.from(new Set(processedEntries.flatMap(e => e.category_tags ?? [])));
 
   return (
-    <div className="container mx-auto pt-6 pb-8 sm:px-6 lg:px-8">
+    <div className="max-w-4xl mx-auto pt-6 pb-8 px-4 sm:px-6 lg:px-8">
       <CopyListTabs copyEntries={processedEntries} allIndustryTags={allIndustryTags} allCategoryTags={allCategoryTags} />
     </div>
   );

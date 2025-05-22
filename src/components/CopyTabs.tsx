@@ -156,7 +156,7 @@ export default function CopyTabs({
         )}
 
           {/* 解説本文 */}
-        <div className="prose prose-xl text-[1.05rem] max-w-none mb-16 text-gray-700 leading-loose hyphens-auto">{explanation || '解説がありません。'}</div>
+        <div className="prose prose-xl text-[1.0rem] max-w-none mb-16 text-gray-700 leading-loose hyphens-auto">{explanation || '解説がありません。'}</div>
 
           {/* 詳細情報 */}
         <div className="text-md text-gray-700 space-y-2 mt-16 border-t border-gray-200 pt-12">
