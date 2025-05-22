@@ -1,6 +1,5 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import type { Database } from '@/lib/database.types';
 import CopyListTabs from '@/components/CopyListTabs';
 import { Tables } from '@/lib/database.types';
 

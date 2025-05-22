@@ -2,9 +2,9 @@
 
 import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import type { Database } from '@/lib/database.types';
-import { createBrowserClient } from '@supabase/ssr';
-import { SupabaseClient } from "@supabase/supabase-js";
-import { v4 as uuidv4 } from 'uuid';
+// import { createBrowserClient } from '@supabase/ssr'; // Not used
+// import { SupabaseClient } from "@supabase/supabase-js"; // Not used
+// import { v4 as uuidv4 } from 'uuid'; // Not used in this component
 
 type CopyEntry = Database['public']['Tables']['copy_entries']['Row'];
 // Omit fields that are auto-generated or not edited in the form
@@ -89,7 +89,7 @@ export default function CopyEntryForm({
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    let processedValue: any = value;
+    let processedValue: string | number | string[] | null = value;
 
     if (type === 'number') {
       processedValue = value === '' ? null : parseInt(value, 10);

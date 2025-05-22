@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, FormEvent } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createBrowserClient } from '@supabase/ssr';
 import type { Database } from '@/lib/database.types';
 import CopyEntryForm from '@/components/CopyEntryForm'; // Import the form component
@@ -39,9 +39,9 @@ export default function CopyEntriesAdminPage() {
 
       if (fetchError) throw fetchError;
       setEntries(data || []);
-    } catch (err: any) {
+    } catch (err) {
       console.error('Error fetching entries:', err);
-      setError('データの取得に失敗しました: ' + err.message);
+      setError('データの取得に失敗しました: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
     }
@@ -89,6 +89,7 @@ export default function CopyEntriesAdminPage() {
               .from(IMAGE_BUCKET_NAME)
               .remove(fileNamesToDelete);
           if (removeError) {
+            console.error('Error removing images:', removeError); // Log error
           }
       }
 
@@ -99,7 +100,7 @@ export default function CopyEntriesAdminPage() {
           const uniqueFileName = `${uuidv4()}.${fileExt}`;
           const filePath = `${IMAGE_BUCKET_NAME}/${uniqueFileName}`; // Path within the bucket
 
-          const { data: uploadData, error: uploadError } = await supabase.storage
+          const { error: uploadError } = await supabase.storage
             .from(IMAGE_BUCKET_NAME)
             .upload(uniqueFileName, file); // Upload with unique name
 
@@ -117,7 +118,7 @@ export default function CopyEntriesAdminPage() {
       const existingPathsToKeep = (editingEntry?.key_visual_urls ?? []).filter(
           path => !imagesToDelete.includes(path)
       );
-      let finalImagePaths = [...existingPathsToKeep, ...uploadedImagePaths];
+      const finalImagePaths = [...existingPathsToKeep, ...uploadedImagePaths];
 
       const dataToSave: Omit<CopyEntry, 'id' | 'created_at' | 'serial_number'> & { id?: string } = {
           ...formData,
@@ -147,8 +148,8 @@ export default function CopyEntriesAdminPage() {
       setEditingEntry(null);
       await fetchEntries(); // Refresh the list
 
-    } catch (err: any) {
-        setFormError(`保存に失敗しました: ${err.message}`);
+    } catch (err) {
+        setFormError(`保存に失敗しました: ${(err instanceof Error ? err.message : String(err))}`);
         // Optional: Attempt to remove successfully uploaded images if DB save fails
         if (uploadedImagePaths.length > 0) {
             // Storage expects file names/paths within the bucket
@@ -186,13 +187,13 @@ export default function CopyEntriesAdminPage() {
              .from(IMAGE_BUCKET_NAME)
              .remove(fileNamesToRemove);
            if (storageError) {
-             // Decide if this should be a critical error or just logged
+             console.error('Error deleting images from storage during entry deletion:', storageError); // Log error or handle differently
            }
         }
         
         await fetchEntries(); // Refresh list
-      } catch (err: any) {
-          setError(`削除に失敗しました: ${err.message}`);
+      } catch (err) {
+          setError(`削除に失敗しました: ${(err instanceof Error ? err.message : String(err))}`);
       } finally {
           setLoading(false);
       }

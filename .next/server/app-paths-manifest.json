@@ -1,7 +1,7 @@
 {
   "/_not-found/page": "app/_not-found/page.js",
+  "/copy/page": "app/copy/page.js",
   "/page": "app/page.js",
-  "/admin/copy-entries/page": "app/admin/copy-entries/page.js",
   "/copy/[id]/page": "app/copy/[id]/page.js",
-  "/copy/page": "app/copy/page.js"
+  "/admin/copy-entries/page": "app/admin/copy-entries/page.js"
 }

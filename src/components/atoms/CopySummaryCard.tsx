@@ -1,7 +1,7 @@
 'use client'
 
 import React from 'react';
-import { Card, CardContent, Typography, CardMedia, Box } from '@mui/material';
+import { Card, CardContent, Typography, CardMedia } from '@mui/material';
 import Link from 'next/link';
 
 export type CopySummaryCardProps = {

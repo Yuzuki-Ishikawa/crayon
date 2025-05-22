@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from 'react';
 import { Chip, Stack, Skeleton } from '@mui/material';
 import Link from 'next/link';
 
@@ -15,7 +14,6 @@ interface CopyTabsProps {
   industry_tags: string[] | null;
   category_tags: string[] | null;
   source: Array<{title: string, url: string}> | null | undefined;
-  headline?: string | null;
   volNumber?: string | number | null;
   keyVisualUrls?: string[] | null;
   publishAt?: string | null;
@@ -40,7 +38,6 @@ export default function CopyTabs({
   industry_tags,
   category_tags,
   source,
-  headline,
   volNumber,
   keyVisualUrls,
   publishAt,

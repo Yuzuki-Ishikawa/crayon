@@ -40,7 +40,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
   
   // Validate UUID format
   if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(copyId)) {
-    console.error("Invalid ID format:", copyId);
+    // console.error("Invalid ID format:", copyId); // Consider logging to a server-side logger instead
     notFound();
   }
 
@@ -52,7 +52,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
     .single();
 
   if (error) {
-    console.error("Error fetching copy entry:", error);
+    // console.error("Error fetching copy entry:", error); // Consider logging to a server-side logger instead
     notFound();
   }
   if (!data) {
@@ -69,7 +69,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
       .from(bucketName)
       .createSignedUrls(fileNames, 3600); // 1 hour
     if (signErr) {
-      console.error('Failed to create signed URLs:', signErr);
+      // console.error('Failed to create signed URLs:', signErr); // Consider logging to a server-side logger instead
     } else {
       signedUrls = signed?.map(obj => obj.signedUrl) ?? [];
     }
@@ -126,7 +126,6 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
         industry_tags={industry_tags} // 新しいindustry_tagsプロパティ
         category_tags={category_tags} // 新しいcategory_tagsプロパティ
         source={data.source as { title: string; url: string }[] | null | undefined}
-        headline={data.headline}
         volNumber={data.serial_number || data.id}
         keyVisualUrls={signedUrls}
         publishAt={data.publish_at}
@@ -170,7 +169,7 @@ export default async function CopyDetailPage({ params }: { params: { id: string 
 }
 
 function extractYouTubeId(url: string): string | null {
-  const regExp = /(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([\w-]{11})/;
+  const regExp = /(?:youtube\.com\/(?:[^/\n\s]+\/\S+\/|(?:v|e(?:mbed)?|shorts)\/|.*[?&]v=)|youtu\.be\/)([^\w-]{11})/;
   const match = url.match(regExp);
   return match ? match[1] : null;
 } 

@@ -14,7 +14,6 @@ interface CopyListTabsProps {
 }
 
 export default function CopyListTabs({ copyEntries, allIndustryTags, allCategoryTags }: CopyListTabsProps) {
-  const [initialEntries, setInitialEntries] = useState<CopyEntryForList[]>(copyEntries);
   const [filteredEntries, setFilteredEntries] = useState<CopyEntryForList[]>(copyEntries);
   
   // Modal state
@@ -37,7 +36,6 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
       currentEntries = currentEntries.filter(entry => (entry.category_tags ?? []).includes(appliedCategory));
     }
     setFilteredEntries(currentEntries);
-    setInitialEntries(copyEntries); 
   }, [copyEntries, appliedIndustry, appliedCategory]);
 
   const openFilterModal = () => {
