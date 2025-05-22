@@ -40,7 +40,6 @@ export default function CopyEntriesAdminPage() {
       if (fetchError) throw fetchError;
       setEntries(data || []);
     } catch (err) {
-      console.error('Error fetching entries:', err);
       setError('データの取得に失敗しました: ' + (err instanceof Error ? err.message : String(err)));
     } finally {
       setLoading(false);
@@ -83,14 +82,11 @@ export default function CopyEntriesAdminPage() {
     try {
       // --- 1. Remove images marked for deletion --- 
       if (imagesToDelete.length > 0 && editingEntry) {
-          // Storage expects file names/paths within the bucket
           const fileNamesToDelete = imagesToDelete.map(path => path.replace(`${IMAGE_BUCKET_NAME}/`, ''));
-          const { error: removeError } = await supabase.storage
+          await supabase.storage
               .from(IMAGE_BUCKET_NAME)
               .remove(fileNamesToDelete);
-          if (removeError) {
-            console.error('Error removing images:', removeError); // Log error
-          }
+          // TODO: Consider logging removeError if needed, but for now, rely on overall try-catch
       }
 
       // --- 2. Upload new images --- 
@@ -152,10 +148,10 @@ export default function CopyEntriesAdminPage() {
         setFormError(`保存に失敗しました: ${(err instanceof Error ? err.message : String(err))}`);
         // Optional: Attempt to remove successfully uploaded images if DB save fails
         if (uploadedImagePaths.length > 0) {
-            // Storage expects file names/paths within the bucket
+             // Storage expects file names/paths within the bucket
             const fileNamesToRemove = uploadedImagePaths.map(path => path.replace(`${IMAGE_BUCKET_NAME}/`, ''));
-            const { error: removeError } = await supabase.storage.from(IMAGE_BUCKET_NAME).remove(fileNamesToRemove);
-             if (removeError) {
+            const { error: removeErrorWhileCleaning } = await supabase.storage.from(IMAGE_BUCKET_NAME).remove(fileNamesToRemove);
+             if (removeErrorWhileCleaning) {
                 setFormError((prev) => prev + ' \n新規画像クリーンアップ失敗');
             }
         }
@@ -183,12 +179,10 @@ export default function CopyEntriesAdminPage() {
         if (imagePathsToRemove.length > 0) {
            // Important: storage.remove expects only the file names/paths within the bucket
            const fileNamesToRemove = imagePathsToRemove.map(path => path.replace(`${IMAGE_BUCKET_NAME}/`, ''));
-           const { error: storageError } = await supabase.storage
+           await supabase.storage
              .from(IMAGE_BUCKET_NAME)
              .remove(fileNamesToRemove);
-           if (storageError) {
-             console.error('Error deleting images from storage during entry deletion:', storageError); // Log error or handle differently
-           }
+           // TODO: Consider logging storageError if needed
         }
         
         await fetchEntries(); // Refresh list

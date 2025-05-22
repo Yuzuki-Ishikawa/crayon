@@ -149,7 +149,7 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
                 />
               ))}
             </Stack>
-          </div>
+              </div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-gray-700 mb-2">カテゴリタグ</label>
             <Stack direction="row" spacing={1} useFlexGap flexWrap="wrap">
@@ -169,7 +169,7 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
                 />
               ))}
             </Stack>
-          </div>
+        </div>
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'space-between', padding: '16px 24px'}}>
           <Button onClick={handleClearFilters} sx={{ color: '#2253A3' }}>
@@ -187,15 +187,15 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
             return (
               <Link key={entry.id} href={`/copy/${entry.id}`} className="group block rounded-xl shadow-lg overflow-hidden bg-white hover:shadow-2xl transition-all duration-300 ease-in-out flex flex-col">
                 <div className="relative w-full" style={{ aspectRatio: '1.618 / 1' }}>
-                  {entry.signedThumbnailUrl ? (
-                    <Image
-                      src={entry.signedThumbnailUrl}
+                {entry.signedThumbnailUrl ? (
+                  <Image
+                    src={entry.signedThumbnailUrl}
                       alt={entry.headline || 'イメージ'}
-                      layout="fill"
-                      objectFit="cover"
+                    layout="fill"
+                    objectFit="cover"
                       className={`group-hover:scale-105 transition-transform duration-500 ease-in-out opacity-100`}
-                    />
-                  ) : (
+                  />
+                ) : (
                     <div className="flex items-center justify-center h-full text-gray-400 bg-gray-200 w-full" style={{ aspectRatio: '1.618 / 1' }}>
                       <ImageIcon sx={{ fontSize: 60, color: '#cccccc' }} />
                     </div>
@@ -210,8 +210,8 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
                       <span className="block text-base text-red-600">
                         {formatListDate(entry.publish_at)}
                       </span>
-                    )}
-                  </div>
+                )}
+              </div>
                   <p className="text-xl font-medium text-gray-800 line-clamp-3 leading-tight mb-3 flex-grow" title={entry.copy_text || ''}>
                     {entry.copy_text || '（タイトル未設定）'}
                   </p>
@@ -220,8 +220,8 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
                       {entry.advertiser || '-'}
                     </span>
                   </div>
-                </div>
-              </Link>
+              </div>
+            </Link>
             );
           })}
         </div>
@@ -234,7 +234,7 @@ export default function CopyListTabs({ copyEntries, allIndustryTags, allCategory
       )}
     </div>
   );
-}
+} 
 
 function formatListDate(dateStr?: string | null): string {
   if (!dateStr) return '';

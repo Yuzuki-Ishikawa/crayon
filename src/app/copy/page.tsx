@@ -60,27 +60,35 @@ export default async function BackNumberPage() {
     .order('serial_number', { ascending: false });
 
   if (error) {
-    throw error; // エラーをスローしてNext.jsのエラーハンドリングに任せる
+    throw error;
   }
 
   const pathsToSign: string[] = [];
   const entriesWithKeys = copyEntries.map(entry => {
-    if (entry.key_visual_urls && entry.key_visual_urls.length > 0) {
-      const firstKeyVisualPath = entry.key_visual_urls[0].split('/').slice(-2).join('/'); // storage_bucket/image.jpg
-      pathsToSign.push(firstKeyVisualPath);
-      return { ...entry, thumbnailPath: firstKeyVisualPath }; 
+    if (entry.key_visual_urls && entry.key_visual_urls.length > 0 && entry.key_visual_urls[0]) {
+      const firstKeyVisualFullPath = entry.key_visual_urls[0];
+      // パスの先頭にあるかもしれない余分な部分を削除してファイル名に近い形にする
+      const cleanPath = firstKeyVisualFullPath.replace(/^\/?(public\/)?key-visuals\//, '');
+      pathsToSign.push(cleanPath); 
+      return { ...entry, thumbnailPathKey: cleanPath }; // マッピング用のキーとして保存
     }
-    return { ...entry, thumbnailPath: null };
+    return { ...entry, thumbnailPathKey: null };
   });
 
   let signedUrlsMap: Record<string, string> = {};
   if (pathsToSign.length > 0) {
-    const { data: signedData, error: signError } = await supabase.storage.from('copy-entry-images').createSignedUrls(pathsToSign, 60 * 5);
+    // バケット名を 'key-visuals' に統一
+    const { data: signedData, error: signError } = await supabase.storage
+      .from('key-visuals') 
+      .createSignedUrls(pathsToSign, 60 * 5); // 5分間有効
+
     if (signError) {
-      // エラーがあっても処理を続けるが、URLは未署名になる
+      // Handle error appropriately in production
     } else if (signedData) {
       signedUrlsMap = signedData.reduce((acc: Record<string, string>, item) => {
-        if (item.signedUrl && item.path) {
+        // createSignedUrls に渡したパス (pathsToSign の要素) がキーになるはず
+        // item.path は createSignedUrls に渡したパスと完全一致するはずなので、それを使う
+        if (item.signedUrl && item.path && pathsToSign.includes(item.path)) {
           acc[item.path] = item.signedUrl;
         }
         return acc;
@@ -90,7 +98,7 @@ export default async function BackNumberPage() {
 
   const processedEntries: CopyEntryForList[] = entriesWithKeys.map(entry => ({
     ...entry,
-    signedThumbnailUrl: entry.thumbnailPath ? signedUrlsMap[entry.thumbnailPath] : undefined,
+    signedThumbnailUrl: entry.thumbnailPathKey ? signedUrlsMap[entry.thumbnailPathKey] : undefined,
   }));
 
   // タグ一覧を抽出

@@ -11,6 +11,7 @@ body {
   @apply bg-gray-50 text-gray-800;
   font-family: 'Noto Sans JP', sans-serif;
   font-weight: 300; /* Set default font weight to Light */
+  background-color: #ffffff;
 }
 
 /* Consistent button styling */
@@ -36,6 +37,8 @@ body {
 a {
   /* @apply text-indigo-600 hover:text-indigo-700; */
   @apply text-[#2253A3] hover:text-[#1e478a];
+  color: inherit;
+  text-decoration: none;
 }
 
 /* Styling for prose text if you're using @tailwindcss/typography */
@@ -60,4 +63,18 @@ a {
 .no-scrollbar {
     -ms-overflow-style: none;  /* IE and Edge */
     scrollbar-width: none;  /* Firefox */
+}
+
+/* Ensure body background is white if not already set by Tailwind base styles */
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+  background-color: #ffffff; /* Ensure white background */
+}
+
+* {
+  box-sizing: border-box;
 }

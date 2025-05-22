@@ -1,13 +1,10 @@
 "use client";
 
-import { useState, useEffect, ChangeEvent, FormEvent } from 'react';
+import React, { useState, useEffect, ChangeEvent, FormEvent } from 'react';
 import type { Database } from '@/lib/database.types';
-// import { createBrowserClient } from '@supabase/ssr'; // Not used
-// import { SupabaseClient } from "@supabase/supabase-js"; // Not used
-// import { v4 as uuidv4 } from 'uuid'; // Not used in this component
+import Image from 'next/image';
 
 type CopyEntry = Database['public']['Tables']['copy_entries']['Row'];
-// Omit fields that are auto-generated or not edited in the form
 type CopyEntryFormData = Omit<CopyEntry, 'id' | 'created_at' | 'updated_at' | 'serial_number'>;
 
 interface CopyEntryFormProps {
@@ -243,7 +240,7 @@ export default function CopyEntryForm({
                 return (
                   <div key={path} className={`relative border rounded-lg overflow-hidden ${isMarkedForDeletion ? 'opacity-50 border-red-400' : ''}`}>
                     {previewUrl ? (
-                       <img src={previewUrl} alt="Existing visual" className="w-full h-24 object-cover" />
+                       <Image src={previewUrl} alt="Existing visual" width={200} height={200} className={`w-full h-24 object-cover ${isMarkedForDeletion ? 'opacity-50' : ''}`} />
                     ): (
                        <div className="w-full h-24 bg-gray-200 flex items-center justify-center text-xs text-gray-500">プレビュー不可</div>
                     )}
@@ -283,9 +280,21 @@ export default function CopyEntryForm({
             <p className="text-xs font-medium text-gray-600 mb-2">新規追加プレビュー:</p>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
               {previews.map((previewUrl, index) => (
-                <div key={index} className="border rounded-lg overflow-hidden">
-                  <img src={previewUrl} alt={`New visual preview ${index + 1}`} className="w-full h-24 object-cover" />
-                  <p className="text-[10px] p-1 truncate text-gray-500" title={selectedFiles[index]?.name}>{selectedFiles[index]?.name}</p>
+                <div key={index} className="relative w-32 h-32">
+                  <Image
+                    src={previewUrl}
+                    alt={`Preview ${index + 1}`}
+                    fill
+                    style={{ objectFit: 'cover' }}
+                    className="rounded-lg"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleImageDeleteToggle(previewUrl)}
+                    className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+                  >
+                    ×
+                  </button>
                 </div>
               ))}
             </div>

@@ -1,146 +1,142 @@
-"use client";
+import { createServerClient, type CookieOptions } from '@supabase/ssr';
+import { cookies } from 'next/headers';
+import { Tables } from '@/lib/database.types';
+import LpClientContent from '@/components/LpClientContent';
 
-import React, { useRef } from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
-import { AppBar, Toolbar, Typography, IconButton, Box, Button, Card, CardContent, CardMedia, Container, Stack, Divider } from '@mui/material';
-import MenuIcon from '@mui/icons-material/Menu';
-import ArrowBackIosNewIcon from '@mui/icons-material/ArrowBackIosNew';
-import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
-
-const featuredArticle = {
-  id: '1',
-  imageUrl: '/sample1.jpg',
-  vol: 'x',
-  date: 'yyyy/mm/dd',
-  copyText: '--------------------',
-  advertiser: 'aaa',
+// Supabaseクライアント作成ヘルパー (記事一覧ページなどから流用)
+const createSupabaseServerClient = (cookieStore: ReturnType<typeof cookies>) => {
+  return createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) { return cookieStore.get(name)?.value; },
+        set(name: string, value: string, options: CookieOptions) { try { cookieStore.set({ name, value, ...options }); } catch (error) { /* Ignore */ } },
+        remove(name: string, options: CookieOptions) { try { cookieStore.set({ name, value: '', ...options }); } catch (error) { /* Ignore */ } },
+      },
+    }
+  );
 };
 
-const latestArticles = [
-  { id: '2', imageUrl: '/sample2.jpg', vol: 'x', date: 'yyyy/mm/dd', copyText: '--------------------', advertiser: 'aaa' },
-  { id: '3', imageUrl: '/sample1.jpg', vol: 'x', date: 'yyyy/mm/dd', copyText: '--------------------', advertiser: 'aaa' },
-  { id: '4', imageUrl: '/sample3.jpg', vol: 'x', date: 'yyyy/mm/dd', copyText: '--------------------', advertiser: 'aaa' },
-];
+// 記事データの型 (記事一覧から流用、必要に応じて調整)
+export type ArticleForLp = Pick<
+  Tables<'copy_entries'>,
+  'id' | 'headline' | 'copy_text' | 'advertiser' | 'key_visual_urls' | 'serial_number' | 'publish_at'
+> & {
+  signedThumbnailUrl?: string;
+};
 
-export default function LandingPage() {
-  const scrollRef = useRef<HTMLDivElement>(null);
+async function getLpData() {
+  const cookieStore = cookies();
+  const supabase = createSupabaseServerClient(cookieStore);
 
-  const scroll = (direction: 'left' | 'right') => {
-    const container = scrollRef.current;
-    if (!container) return;
-    const scrollAmount = 320; // カード幅＋余白
-    container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+  // 最新記事1件 (特集記事用)
+  const { data: featuredArticleData, error: featuredError } = await supabase
+    .from('copy_entries')
+    .select('id, headline, copy_text, advertiser, key_visual_urls, serial_number, publish_at')
+    .eq('status', 'published')
+    .order('publish_at', { ascending: false })
+    .limit(1)
+    .single();
+
+  if (featuredError) {
+    // console.error('Error fetching featured article for LP:', featuredError);
+  }
+
+  // ArticleForLpから 'signedThumbnailUrl' を除いた型を定義 (DBからの取得データ用)
+  type DbArticleData = Omit<ArticleForLp, 'signedThumbnailUrl'>;
+
+  // 最新記事リスト (カルーセル用 - 特集記事を除いて5件取得)
+  let latestArticlesData: DbArticleData[] | null = null; // Use DbArticleData
+  const { data: initialLatestArticles, error: latestError } = await supabase
+    .from('copy_entries')
+    .select('id, headline, copy_text, advertiser, key_visual_urls, serial_number, publish_at') // Ensure this matches DbArticleData
+    .eq('status', 'published')
+    .order('publish_at', { ascending: false })
+    .limit(featuredArticleData ? 6 : 5);
+
+  if (latestError) {
+    // console.error('Error fetching latest articles for LP:', latestError);
+  } else if (initialLatestArticles) {
+    const typedInitialArticles = initialLatestArticles as DbArticleData[]; // Type assertion
+    latestArticlesData = featuredArticleData 
+      ? typedInitialArticles.filter(article => article.id !== featuredArticleData.id).slice(0, 5)
+      : typedInitialArticles.slice(0, 5);
+  }
+  
+  // サムネイルURLの署名
+  const articlesToProcessForSigning: (DbArticleData | null)[] = []; // Use DbArticleData
+  if (featuredArticleData) {
+    articlesToProcessForSigning.push(featuredArticleData as DbArticleData); // Type assertion
+  }
+  if (latestArticlesData) {
+    latestArticlesData.forEach(latestArticle => {
+      if (!featuredArticleData || latestArticle.id !== featuredArticleData.id) {
+        articlesToProcessForSigning.push(latestArticle);
+      }
+    });
+  }
+  
+  const articlesToSign = articlesToProcessForSigning.filter(Boolean) as DbArticleData[]; // Use DbArticleData
+  const pathsToSign: string[] = [];
+  const articlesWithPaths = articlesToSign.map(article => {
+    if (article.key_visual_urls && article.key_visual_urls.length > 0 && article.key_visual_urls[0]) {
+      const path = article.key_visual_urls[0].replace(/^\/?(public\/)?key-visuals\//, '');
+      pathsToSign.push(path);
+      return { ...article, thumbnailPathKey: path };
+    }
+    return { ...article, thumbnailPathKey: null };
+  });
+
+  let signedUrlsMap: Record<string, string> = {};
+  if (pathsToSign.length > 0) {
+    const { data: signedData, error: signError } = await supabase.storage
+      .from('key-visuals')
+      .createSignedUrls(pathsToSign, 60 * 5); // 5分間有効
+    if (signError) {
+      // console.error("Error creating signed URLs for LP:", signError);
+    } else if (signedData) {
+      signedUrlsMap = signedData.reduce((acc, item) => {
+        if (item.signedUrl && item.path) acc[item.path] = item.signedUrl;
+        return acc;
+      }, {} as Record<string, string>);
+    }
+  }
+
+  const processArticle = (articleWithKey: typeof articlesWithPaths[number] | undefined): ArticleForLp | null => {
+    if (!articleWithKey) return null;
+    const article = articleWithKey as Tables<'copy_entries'> & { thumbnailPathKey?: string | null }; // 型アサーションを明確に
+
+    const thumbnailUrl = article.thumbnailPathKey ? signedUrlsMap[article.thumbnailPathKey] : (
+      article.key_visual_urls && article.key_visual_urls.length > 0 && article.key_visual_urls[0] ? 
+      `${process.env.NEXT_PUBLIC_SUPABASE_URL}/storage/v1/object/public/key-visuals/${article.key_visual_urls[0].replace(/^\/?(public\/)?key-visuals\//, '')}` 
+      : '/placeholder-image.jpg'
+    );
+    return {
+      id: article.id,
+      headline: article.headline,
+      copy_text: article.copy_text,
+      advertiser: article.advertiser,
+      key_visual_urls: article.key_visual_urls,
+      serial_number: article.serial_number,
+      publish_at: article.publish_at,
+      signedThumbnailUrl: thumbnailUrl,
+    };
   };
+  
+  const featuredArticleProcessed = processArticle(articlesWithPaths.find(a => featuredArticleData && a.id === featuredArticleData.id));
+  const latestArticlesProcessed = articlesWithPaths
+    .filter(a => latestArticlesData?.some(la => la.id === a.id && (!featuredArticleData || la.id !== featuredArticleData.id)))
+    .map(article => processArticle(article))
+    .filter(Boolean) as ArticleForLp[];
+
+  return { featuredArticle: featuredArticleProcessed, latestArticles: latestArticlesProcessed };
+}
+
+export default async function LandingPage() {
+  const { featuredArticle, latestArticles } = await getLpData();
 
   return (
-    <Box sx={{ bgcolor: '#fff', minHeight: '100vh' }}>
-      {/* Header */}
-      <AppBar position="static" color="default" elevation={1}>
-        <Toolbar>
-          <Link href="/" passHref style={{ textDecoration: 'none', color: 'inherit' }}>
-            <Typography variant="h4" component="a" sx={{ flexGrow: 1, fontWeight: 'bold', letterSpacing: 4, cursor: 'pointer' }}>
-              まいにち
-              <Box component="span" sx={{ color: '#2253A3', fontWeight: 'bold', ml: 1 }}>広告部</Box>
-            </Typography>
-          </Link>
-          <Box sx={{ flexGrow: 1 }} />
-          <IconButton edge="end" color="inherit">
-            <MenuIcon sx={{ fontSize: 36 }} />
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-
-      <Container maxWidth="md" sx={{ mt: 6 }}>
-        {/* Featured Article */}
-        <Box display="flex" flexDirection={{ xs: 'column', md: 'row' }} alignItems="center" gap={4}>
-          <Card sx={{ flex: 2, minWidth: 300 }}>
-            <CardMedia>
-              <Image src={featuredArticle.imageUrl} alt="" width={400} height={225} style={{ width: '100%', height: 'auto' }} />
-            </CardMedia>
-            <CardContent>
-              <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                <Typography variant="body1">Vol. {featuredArticle.vol}</Typography>
-                <Typography variant="body1">{featuredArticle.date}</Typography>
-              </Stack>
-              <Divider sx={{ my: 1 }} />
-              <Typography variant="body2" sx={{ mt: 1 }}>{featuredArticle.copyText}</Typography>
-              <Typography variant="body2" sx={{ mt: 1 }}>広告主：{featuredArticle.advertiser}</Typography>
-            </CardContent>
-          </Card>
-          <Box flex={1} display="flex" justifyContent="center" alignItems="center">
-            <Button
-              variant="contained"
-              sx={{
-                bgcolor: '#19C37D',
-                color: '#fff',
-                fontSize: 22,
-                px: 5,
-                py: 2,
-                borderRadius: 2,
-                boxShadow: 2,
-                '&:hover': { bgcolor: '#16a06a' },
-              }}
-            >
-              LINE連携でリマインド
-            </Button>
-          </Box>
-        </Box>
-
-        {/* Latest Articles */}
-        <Box mt={8}>
-          <Stack direction="row" alignItems="center" spacing={1} mb={2}>
-            <Box sx={{ width: 8, height: 28, bgcolor: '#2253A3', borderRadius: 1 }} />
-            <Typography variant="h6" fontWeight="bold">最新記事</Typography>
-          </Stack>
-          <Box position="relative">
-            <IconButton
-              sx={{
-                position: 'absolute', left: -48, top: '50%', transform: 'translateY(-50%)', zIndex: 2, bgcolor: '#2253A3', color: '#fff', '&:hover': { bgcolor: '#17407b' }, display: { xs: 'none', sm: 'flex' }
-              }}
-              onClick={() => scroll('left')}
-            >
-              <ArrowBackIosNewIcon />
-            </IconButton>
-            <Box
-              ref={scrollRef}
-              sx={{
-                display: 'flex',
-                overflowX: 'auto',
-                gap: 2,
-                pb: 2,
-                scrollBehavior: 'smooth',
-                '&::-webkit-scrollbar': { display: 'none' },
-              }}
-            >
-              {latestArticles.map(article => (
-                <Card key={article.id} sx={{ minWidth: 280, maxWidth: 300, flex: '0 0 auto' }}>
-                  <CardMedia>
-                    <Image src={article.imageUrl} alt="" width={300} height={180} style={{ width: '100%', height: 'auto' }} />
-                  </CardMedia>
-                  <CardContent>
-                    <Stack direction="row" justifyContent="space-between" alignItems="center" spacing={2}>
-                      <Typography variant="body2">Vol. {article.vol}</Typography>
-                      <Typography variant="body2">{article.date}</Typography>
-                    </Stack>
-                    <Divider sx={{ my: 1 }} />
-                    <Typography variant="body2">{article.copyText}</Typography>
-                    <Typography variant="body2">広告主：{article.advertiser}</Typography>
-                  </CardContent>
-                </Card>
-              ))}
-            </Box>
-            <IconButton
-              sx={{
-                position: 'absolute', right: -48, top: '50%', transform: 'translateY(-50%)', zIndex: 2, bgcolor: '#2253A3', color: '#fff', '&:hover': { bgcolor: '#17407b' }, display: { xs: 'none', sm: 'flex' }
-              }}
-              onClick={() => scroll('right')}
-            >
-              <ArrowForwardIosIcon />
-            </IconButton>
-          </Box>
-        </Box>
-      </Container>
-    </Box>
+    <LpClientContent featuredArticle={featuredArticle} latestArticles={latestArticles} />
   );
 } 

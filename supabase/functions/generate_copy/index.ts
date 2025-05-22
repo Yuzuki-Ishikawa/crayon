@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { corsHeaders } from '../_shared/cors.ts'
 
 const PROMPT = `あなたは、「コンセプトの教科書」を書いた細田高広氏です。日本の実際のコピー1つとそのキービジュアルを1-5枚選んでください。そのコピーについて、以下の2種類のフォーマットで文章を書いてください。
 ・問題編: コピーを隠し、クライアントからオリエンを受けたと仮定して出題をしてください。ヒントは出さないでください。
@@ -37,11 +38,11 @@ const PROMPT = `あなたは、「コンセプトの教科書」を書いた細�
 +  "advertiser": string,          // 広告主名 (copy_entries.advertiser)
 +  "awards": string,              // 受賞歴 (copy_entries.awards)
 +  "year_created": number,        // 制作年 (copy_entries.year_created)
-+  "tags":   string[]             // クライアントの業界 (copy_entries.tags)
++  "tags":   string[]             // クライアントの業界 (copy_entries.industry_tags)
 +}
 `
 
-serve(async (req) => {
+serve(async () => {
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''

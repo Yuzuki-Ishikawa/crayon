@@ -1,10 +1,10 @@
 "use client";
 
-import { Chip, Stack, Skeleton } from '@mui/material';
+import React from 'react';
 import Link from 'next/link';
+import { Chip, Stack } from '@mui/material';
 
 interface CopyTabsProps {
-  isLoading?: boolean;
   explanation: string | null;
   copyText: string | null;
   advertiser: string | null;
@@ -28,7 +28,6 @@ function formatDate(dateStr?: string | null): string {
 }
 
 export default function CopyTabs({
-  isLoading = false,
   explanation,
   copyText,
   advertiser,
@@ -44,9 +43,6 @@ export default function CopyTabs({
 }: CopyTabsProps) {
   // カルーセル（横スクロール）
   const renderCarousel = () => {
-    if (isLoading) {
-      return <Skeleton variant="rectangular" width="100%" height={192} animation="wave" className="mb-4 rounded-lg" />;
-    }
     if (!keyVisualUrls || keyVisualUrls.length === 0) {
       return <div className="text-gray-400 text-center py-4">画像がありません</div>;
     }
@@ -98,9 +94,9 @@ export default function CopyTabs({
                   </span>
                 </li>
               </ol>
-            </nav>
+        </nav>
           ) : <div />}
-          
+
           {publishAt ? (
             <span className="text-red-600 font-medium">
               {formatDate(publishAt)}
@@ -110,14 +106,14 @@ export default function CopyTabs({
       )}
 
       {/* Main content: copy text, carousel, tags, explanation, details */}
-      <div>
+        <div>
         {/* Copy Text */}
         <h1 className="text-3xl md:text-4xl font-medium text-center mb-10 text-gray-800 break-words leading-tight hyphens-auto">{copyText || '[コピー未登録]'}</h1>
         
-        {/* カルーセル */}
-        {(isLoading || (keyVisualUrls && keyVisualUrls.length > 0)) && (
+          {/* カルーセル */}
+        {(keyVisualUrls && keyVisualUrls.length > 0) && (
           <div className="mb-10">
-            {renderCarousel()}
+          {renderCarousel()}
           </div>
         )}
 
@@ -159,38 +155,38 @@ export default function CopyTabs({
           </div>
         )}
 
-        {/* 解説本文 */}
+          {/* 解説本文 */}
         <div className="prose prose-xl text-[1.05rem] max-w-none mb-16 text-gray-700 leading-loose hyphens-auto">{explanation || '解説がありません。'}</div>
 
-        {/* 詳細情報 */}
+          {/* 詳細情報 */}
         <div className="text-md text-gray-700 space-y-2 mt-16 border-t border-gray-200 pt-12">
           <p><strong className="text-gray-800">広告主:</strong> {advertiser || '-'}</p>
           <p><strong className="text-gray-800">コピーライター:</strong> {copywriter || '-'}</p>
           <p><strong className="text-gray-800">年度:</strong> {yearCreated || '-'}</p>
           <p><strong className="text-gray-800">受賞:</strong> {awards || '-'}</p>
-          <div>
+            <div>
             <strong className="text-gray-800">出典:</strong>
-            {Array.isArray(source) && source.length > 0 ? (
+              {Array.isArray(source) && source.length > 0 ? (
               <ul className="list-none ml-2 mt-2 space-y-1">
-                {source.map((s, index) => (
+                  {source.map((s, index) => (
                   <li key={index} className="mb-1">
-                    <a 
-                      href={s.url} 
-                      target="_blank" 
-                      rel="noopener noreferrer" 
-                      className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                    >
-                      {s.title || '（タイトルなし）'} 
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <span className="ml-2">[未登録]</span>
-            )}
+                      <a 
+                        href={s.url} 
+                        target="_blank" 
+                        rel="noopener noreferrer" 
+                        className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                      >
+                        {s.title || '（タイトルなし）'} 
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <span className="ml-2">[未登録]</span>
+              )}
+            </div>
           </div>
         </div>
-      </div>
     </div>
   );
 } 
