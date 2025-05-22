@@ -3,6 +3,22 @@ const nextConfig = {
   // Fast Refreshの設定
   reactStrictMode: true,
   output: 'standalone',
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'frfgughjnkyxqnquxdim.supabase.co',
+        port: '',
+        pathname: '/storage/v1/object/sign/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'via.placeholder.com',
+        port: '',
+        pathname: '/**',
+      },
+    ],
+  },
   // 本番環境での最適化
   webpack: (config, { dev, isServer }) => {
     // 開発環境でのみ適用

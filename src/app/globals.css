@@ -8,6 +8,56 @@
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
-} 
+  @apply bg-gray-50 text-gray-800;
+  font-family: 'Noto Sans JP', sans-serif;
+  font-weight: 300; /* Set default font weight to Light */
+}
+
+/* Consistent button styling */
+.btn {
+  @apply px-4 py-2 rounded font-semibold transition-colors duration-200 ease-in-out;
+}
+
+.btn-primary {
+  /* @apply bg-indigo-600 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2; */
+  @apply bg-[#2253A3] text-white hover:bg-[#1e478a] focus:outline-none focus:ring-2 focus:ring-[#2253A3] focus:ring-offset-2;
+}
+
+.btn-secondary {
+  @apply bg-gray-200 text-gray-800 hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-offset-2;
+}
+
+/* Card styling */
+.content-card {
+  @apply bg-white rounded-lg shadow-lg p-6 sm:p-8;
+}
+
+/* General link styling for consistency if needed */
+a {
+  /* @apply text-indigo-600 hover:text-indigo-700; */
+  @apply text-[#2253A3] hover:text-[#1e478a];
+}
+
+/* Styling for prose text if you're using @tailwindcss/typography */
+.prose {
+  @apply text-gray-700;
+}
+
+.prose h1, .prose h2, .prose h3, .prose h4, .prose h5, .prose h6 {
+  @apply text-gray-900;
+}
+
+/* You might want to adjust the default body text color if needed */
+/* body {
+  background-color: #f9fafb; 
+}
+*/
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+}
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}

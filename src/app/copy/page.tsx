@@ -1,7 +1,8 @@
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import type { Database } from '@/lib/database.types';
-import CopyListTabs from '@/components/CopyListTabs'; // 新しいコンポーネント
+import CopyListTabs from '@/components/CopyListTabs';
+import { Tables } from '@/lib/database.types';
 
 // Helper function to create Supabase client
 const createSupabaseServerClient = (cookieStore: ReturnType<typeof cookies>) => {
@@ -24,11 +25,9 @@ const createSupabaseServerClient = (cookieStore: ReturnType<typeof cookies>) => 
   );
 };
 
-export type CopyEntryForList = Pick<
-  Database['public']['Tables']['copy_entries']['Row'],
-  'id' | 'serial_number' | 'headline' | 'advertiser' | 'copywriter' | 'key_visual_urls' | 'copy_text'
-> & { signedThumbnailUrl?: string };
-
+export type CopyEntryForList = Tables<'copy_entries'> & {
+  signedThumbnailUrl?: string;
+};
 
 export default async function BackNumberPage() {
   const cookieStore = cookies();
@@ -37,66 +36,71 @@ export default async function BackNumberPage() {
   // Fetch published copy entries, ordered by serial number descending
   const { data: copyEntries, error } = await supabase
     .from('copy_entries')
-    .select('id, serial_number, headline, advertiser, copywriter, key_visual_urls, copy_text')
+    .select(`
+      id,
+      headline,
+      copy_text,
+      explanation,
+      advertiser,
+      industry_tags,
+      category_tags,
+      key_visual_urls,
+      status,
+      serial_number,
+      publish_at,
+      awards,
+      copywriter,
+      created_at,
+      source,
+      updated_at,
+      youtube_url,
+      tags,
+      year_created
+    `)
     .eq('status', 'published')
     .order('serial_number', { ascending: false });
 
   if (error) {
-    console.error("Error fetching copy entries:", error);
-    // Optionally return an error message component
-    return <div>Error loading copy entries.</div>;
-  }
-  if (!copyEntries) {
-    return <div>No copy entries found.</div>;
+    throw error; // エラーをスローしてNext.jsのエラーハンドリングに任せる
   }
 
-  // Prepare thumbnail paths and generate signed URLs
-  const thumbnailPaths: { id: string, path: string | null }[] = copyEntries.map(entry => {
-    const firstImagePath = Array.isArray(entry.key_visual_urls) && entry.key_visual_urls.length > 0
-      ? entry.key_visual_urls[0]
-      : null;
-    const cleanedPath = firstImagePath ? firstImagePath.replace(new RegExp('^\\/?(public\\/)?key-visuals\\/'), '') : null;
-    return { id: entry.id, path: cleanedPath };
-  }).filter(item => item.path !== null); // Only try to sign URLs for entries with a path
+  const pathsToSign: string[] = [];
+  const entriesWithKeys = copyEntries.map(entry => {
+    if (entry.key_visual_urls && entry.key_visual_urls.length > 0) {
+      const firstKeyVisualPath = entry.key_visual_urls[0].split('/').slice(-2).join('/'); // storage_bucket/image.jpg
+      pathsToSign.push(firstKeyVisualPath);
+      return { ...entry, thumbnailPath: firstKeyVisualPath }; 
+    }
+    return { ...entry, thumbnailPath: null };
+  });
 
-  const signedUrlMap = new Map<string, string>();
-
-  if (thumbnailPaths.length > 0) {
-    const bucketName = 'key-visuals';
-    const pathsToSign = thumbnailPaths.map(item => item.path!); // Non-null asserted due to filter
-
-    try {
-      const { data: signedData, error: signError } = await supabase.storage
-        .from(bucketName)
-        .createSignedUrls(pathsToSign, 60 * 5); // 5 minutes validity for thumbnails
-
-      if (signError) {
-        console.error('Error creating signed URLs for thumbnails:', signError);
-      } else if (signedData) {
-        // Map signed URLs back to their original entry ID
-        signedData.forEach((signedItem, index) => {
-          const originalItemId = thumbnailPaths[index].id;
-          if (signedItem.signedUrl) {
-            signedUrlMap.set(originalItemId, signedItem.signedUrl);
-          }
-        });
-      }
-    } catch (e) {
-      console.error('Exception during signed URL generation:', e);
+  let signedUrlsMap: Record<string, string> = {};
+  if (pathsToSign.length > 0) {
+    const { data: signedData, error: signError } = await supabase.storage.from('copy-entry-images').createSignedUrls(pathsToSign, 60 * 5);
+    if (signError) {
+      // エラーがあっても処理を続けるが、URLは未署名になる
+    } else if (signedData) {
+      signedUrlsMap = signedData.reduce((acc: Record<string, string>, item) => {
+        if (item.signedUrl && item.path) {
+          acc[item.path] = item.signedUrl;
+        }
+        return acc;
+      }, {});
     }
   }
 
-  // Combine data with signed URLs
-  const processedEntries: CopyEntryForList[] = copyEntries.map(entry => ({
+  const processedEntries: CopyEntryForList[] = entriesWithKeys.map(entry => ({
     ...entry,
-    signedThumbnailUrl: signedUrlMap.get(entry.id),
+    signedThumbnailUrl: entry.thumbnailPath ? signedUrlsMap[entry.thumbnailPath] : undefined,
   }));
 
+  // タグ一覧を抽出
+  const allIndustryTags = Array.from(new Set(processedEntries.flatMap(e => e.industry_tags ?? [])));
+  const allCategoryTags = Array.from(new Set(processedEntries.flatMap(e => e.category_tags ?? [])));
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-3xl font-bold mb-6 text-center">バックナンバー</h1>
-      <CopyListTabs copyEntries={processedEntries} />
+    <div className="container mx-auto pt-6 pb-8 sm:px-6 lg:px-8">
+      <CopyListTabs copyEntries={processedEntries} allIndustryTags={allIndustryTags} allCategoryTags={allCategoryTags} />
     </div>
   );
 } 

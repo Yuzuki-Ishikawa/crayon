@@ -51,7 +51,6 @@ export default function CopyEntryForm({
     // Initialize form with initialData or defaults
     const dataToEdit: Partial<CopyEntryFormData> = {
       headline: initialData?.headline ?? '',
-      problem_body: initialData?.problem_body ?? '',
       explanation: initialData?.explanation ?? '',
       copy_text: initialData?.copy_text ?? '',
       advertiser: initialData?.advertiser ?? '',
@@ -60,9 +59,12 @@ export default function CopyEntryForm({
       awards: initialData?.awards ?? '',
       tags: initialData?.tags ?? [],
       source: initialData?.source ?? '',
-      publish_at: initialData?.publish_at ? initialData.publish_at.split('T')[0] : null, // Format for date input
+      publish_at: initialData?.publish_at ? initialData.publish_at.split('T')[0] : null,
       status: initialData?.status ?? 'draft',
-      key_visual_urls: initialData?.key_visual_urls ?? [], // Keep track for deletions
+      key_visual_urls: initialData?.key_visual_urls ?? [],
+      youtube_url: initialData?.youtube_url ?? '',
+      industry_tags: initialData?.industry_tags ?? [],
+      category_tags: initialData?.category_tags ?? [],
     };
     setFormData(dataToEdit);
     setExistingImagePaths(initialData?.key_visual_urls?.filter(Boolean) ?? []);
@@ -92,7 +94,7 @@ export default function CopyEntryForm({
     if (type === 'number') {
       processedValue = value === '' ? null : parseInt(value, 10);
     }
-    if (name === 'tags') {
+    if (name === 'tags' || name === 'industry_tags' || name === 'category_tags') {
       processedValue = value.split(',').map(tag => tag.trim()).filter(Boolean);
     }
     if (type === 'date' && value === '') {
@@ -120,10 +122,9 @@ export default function CopyEntryForm({
     const dataToSubmit: CopyEntryFormData = {
         // Ensure all required fields are present or have defaults
         headline: formData.headline || 'Untitled', 
-        problem_body: formData.problem_body || null,
-        explanation: formData.explanation || null,
-        copy_text: formData.copy_text || null,
-        advertiser: formData.advertiser || null,
+        explanation: formData.explanation || '',
+        copy_text: formData.copy_text || '',
+        advertiser: formData.advertiser || '',
         copywriter: formData.copywriter || null,
         year_created: formData.year_created || null,
         awards: formData.awards || null,
@@ -132,6 +133,9 @@ export default function CopyEntryForm({
         publish_at: formData.publish_at ? new Date(formData.publish_at).toISOString() : null,
         status: formData.status || 'draft',
         key_visual_urls: [], // Placeholder, set in onSubmit
+        youtube_url: formData.youtube_url || null,
+        industry_tags: formData.industry_tags || [],
+        category_tags: formData.category_tags || [],
     };
     await onSubmit(dataToSubmit, selectedFiles, imagesToDelete);
   };
@@ -188,7 +192,7 @@ export default function CopyEntryForm({
           </div>
            <div>
             <label htmlFor="source" className="block text-sm font-medium text-gray-700">Source</label>
-            <input type="text" id="source" name="source" value={formData.source || ''} onChange={handleChange} className="mt-1 input-field" />
+            <input type="text" id="source" name="source" value={typeof formData.source === 'string' ? formData.source : ''} onChange={handleChange} className="mt-1 input-field" />
           </div>
           <div>
             <label htmlFor="publish_at" className="block text-sm font-medium text-gray-700">Publish Date</label>
@@ -202,14 +206,22 @@ export default function CopyEntryForm({
                 <option value="archived">Archived</option>
             </select>
           </div>
+          <div>
+            <label htmlFor="youtube_url" className="block text-sm font-medium text-gray-700">YouTube動画URL（任意）</label>
+            <input type="text" id="youtube_url" name="youtube_url" value={formData.youtube_url || ''} onChange={handleChange} className="mt-1 input-field" placeholder="https://www.youtube.com/watch?v=..." />
+          </div>
+          <div>
+            <label htmlFor="industry_tags" className="block text-sm font-medium text-gray-700">業種タグ (カンマ区切り)</label>
+            <input type="text" id="industry_tags" name="industry_tags" value={Array.isArray(formData.industry_tags) ? formData.industry_tags.join(', ') : ''} onChange={handleChange} className="mt-1 input-field" />
+          </div>
+          <div>
+            <label htmlFor="category_tags" className="block text-sm font-medium text-gray-700">カテゴリタグ (カンマ区切り)</label>
+            <input type="text" id="category_tags" name="category_tags" value={Array.isArray(formData.category_tags) ? formData.category_tags.join(', ') : ''} onChange={handleChange} className="mt-1 input-field" />
+          </div>
       </div>
 
       {/* Text Areas */} 
       <div className="space-y-4">
-          <div>
-            <label htmlFor="problem_body" className="block text-sm font-medium text-gray-700">Problem Body</label>
-            <textarea id="problem_body" name="problem_body" rows={5} value={formData.problem_body || ''} onChange={handleChange} className="mt-1 input-field" />
-          </div>
           <div>
             <label htmlFor="explanation" className="block text-sm font-medium text-gray-700">Explanation</label>
             <textarea id="explanation" name="explanation" rows={5} value={formData.explanation || ''} onChange={handleChange} className="mt-1 input-field" />

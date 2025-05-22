@@ -57,14 +57,13 @@ serve(async (req) => {
     }
 
     if (event.type === 'postback') {
-      // ここでログ出力
-      console.log('postback data:', event.postback.data)
-      // dataをURLSearchParamsでパース
-      const data = new URLSearchParams(event.postback.data)
-      const freq = data.get('freq')
-      const weekday = data.get('weekday')
-      const time = data.get('time')
-      const page = parseInt(data.get('page') || '0', 10)
+      // console.log('postback data:', event.postback.data)
+      const postbackData = new URLSearchParams(event.postback.data)
+      const action = postbackData.get('action')
+      const freq = postbackData.get('freq')
+      const weekday = postbackData.get('weekday')
+      const time = postbackData.get('time')
+      const page = parseInt(postbackData.get('page') || '0', 10)
 
       if (freq) {
         await supabaseClient

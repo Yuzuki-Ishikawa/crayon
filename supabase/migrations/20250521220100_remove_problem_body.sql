@@ -1,0 +1,1 @@
+   alter table copy_entries drop column if exists problem_body;
